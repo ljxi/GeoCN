@@ -14,7 +14,7 @@
 
 | 字段 | 示列 |
 | --- | --- |
-| isp | 移动 |
+| isp | 中国移动 |
 | net | 宽带 |
 | province | 四川省 |
 | provinceCode | 51 |
