@@ -1,6 +1,6 @@
 # GeoCN
 
-每周更新中国大陆高精度IPV4+IPV6离线库，部分IP精确到区
+每月更新中国大陆高精度IPV4+IPV6离线库，部分IP精确到区
 
 下载地址：[GeoCN.mmdb](https://github.com/ljxi/GeoCN/releases/download/Latest/GeoCN.mmdb)
 
