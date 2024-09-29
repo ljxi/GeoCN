@@ -192,10 +192,10 @@ def query():
 app = FastAPI()
 
 @app.get("/")
-def api(request: Request, ip:str = None):
+def api(request: Request, ip: str = None):
     if not ip:
-        ip = request.headers.get("x-real-ip", request.client.host).strip()
-    return get_ip_info(ip)
+        ip = request.headers.get("x-forwarded-for") or request.headers.get("x-real-ip") or request.client.host
+    return get_ip_info(ip.strip())
 
 @app.get("/{ip}")
 def path_api(ip):
@@ -203,5 +203,5 @@ def path_api(ip):
 
 if __name__ == '__main__':
     query()
-    # import uvicorn
-    # uvicorn.run(app, host="0.0.0.0", port=80, server_header=False, proxy_headers=True)
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8080, server_header=False, proxy_headers=True)
