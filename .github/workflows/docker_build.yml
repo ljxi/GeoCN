@@ -10,7 +10,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}  
+  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME_LOWER: ${{ github.repository | toLowerCase }}
 
 jobs:
   build:
@@ -37,7 +38,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/$(echo ${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]')
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}
           tags: |
             type=ref,event=branch
             type=ref,event=tag
@@ -70,6 +71,6 @@ jobs:
 
       - name: 代码更改时自动重建Docker镜像
         run: |
-          docker pull ${{ env.REGISTRY }}/$(echo ${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]'):latest || true
-          docker build -t ${{ env.REGISTRY }}/$(echo ${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]'):latest ./docker  
-          docker push ${{ env.REGISTRY }}/$(echo ${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]'):latest
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:latest || true
+          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:latest ./docker  
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:latest
