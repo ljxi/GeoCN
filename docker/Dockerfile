@@ -18,4 +18,8 @@ COPY --from=py-builder /usr/local/bin /usr/local/bin
 COPY ./main.py .
 COPY ./update_and_restart.sh .
 
-CMD sh update_and_restart.sh
+RUN chmod -R 777 /code
+
+RUN chmod +x /code/update_and_restart.sh
+
+CMD ["sh", "/code/update_and_restart.sh"]
