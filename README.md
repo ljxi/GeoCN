@@ -1,6 +1,7 @@
 # GeoCN
 
 每月更新中国大陆高精度IPV4+IPV6离线库，部分IP精确到区
+每月也会自动更新Docker镜像版本，[geo-cn](https://hub.docker.com/r/fc6a1b03/geo-cn)，使用`latest`即可
 
 下载地址：[GeoCN.mmdb](https://github.com/ljxi/GeoCN/releases/download/Latest/GeoCN.mmdb)
 
@@ -22,5 +23,3 @@
 | cityCode | 5101 |
 | districts | 武侯区 |
 | districtsCode | 510107 |
-
-海外数据来自MaxMind，每天会自动拉取数据库
