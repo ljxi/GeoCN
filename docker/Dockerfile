@@ -19,7 +19,7 @@ COPY main.py .
 COPY GeoCN.mmdb .
 COPY GeoLite2-ASN.mmdb .
 COPY GeoLite2-City.mmdb .
-COPY GeoLite2-Country.mmdb .
+# COPY GeoLite2-Country.mmdb .
 # 设置时区并安装必要的软件包
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone && \
