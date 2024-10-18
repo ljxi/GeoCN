@@ -1,6 +1,6 @@
 FROM python:3.9 as builder
 WORKDIR /code
-# 复制 requirements 文件并安装依赖
+
 COPY ./requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
