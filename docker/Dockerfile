@@ -16,6 +16,7 @@ COPY --from=builder /usr/local/lib/python3.9/site-packages /usr/local/lib/python
 COPY --from=builder /usr/local/bin /usr/local/bin
 # 复制应用程序代码
 COPY main.py .
+COPY GeoCN.mmdb .
 COPY GeoLite2-ASN.mmdb .
 COPY GeoLite2-City.mmdb .
 COPY GeoLite2-Country.mmdb .
