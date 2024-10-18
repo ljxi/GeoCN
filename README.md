@@ -4,7 +4,7 @@
 
 下载地址：[GeoCN.mmdb](https://github.com/ljxi/GeoCN/releases/download/Latest/GeoCN.mmdb)
 
-本项目仅包含[MaxMind](https://github.com/P3TERX/GeoLite.mmdb)显示为中国大陆的IP段
+本项目仅包含[MaxMind](https://www.maxmind.com)显示为中国大陆的IP段
 
 区域编码数据来自[modood/Administrative-divisions-of-China](https://github.com/modood/Administrative-divisions-of-China)
 
@@ -23,21 +23,4 @@
 | districts | 武侯区 |
 | districtsCode | 510107 |
 
-### 在线演示
-
-查询自己ipv4：`https://ipv4.netart.cn/`
-
-查询自己ipv6：`https://ipv6.netart.cn/`
-
-查询双栈：`https://ipvx.netart.cn/`
-
-查询其他ipv4：`https://ipvx.netart.cn/222.137.1.1` `https://ipvx.netart.cn/?ip=222.137.1.1`
-
-查询其他ipv6：`https://ipvx.netart.cn/240e:476::` `https://ipvx.netart.cn/?ip=240e:476::`
-
-### Docker部署
-
-`docker run -d -p 8000:80 netart/ipapi`
-
 海外数据来自MaxMind，每天会自动拉取数据库
-
