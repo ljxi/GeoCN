@@ -25,3 +25,25 @@ jobs:
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
+    
+    # Step 4: 同步 geoip2
+    - name: Sync Geoip2
+      working-directory: docker
+      run: |
+        chmod +x geoip2_sync.sh && ./geoip2_sync.sh
+      env:
+          LICENSE_KEY: ${{ env.MAXMIND_LICENSE_KEY }}
+
+    # Step 5: 准备 Docker 镜像标签
+    - name: Prepare Docker tags
+      run: |
+        echo "TAGS=fc6a1b03/geo-cn:latest,fc6a1b03/geo-cn:$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
+    
+    # Step 6: 为多种架构构建和推送Docker镜像
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: docker
+        push: true
+        tags: ${{ env.TAGS }}
+        platforms: linux/amd64,linux/arm64
