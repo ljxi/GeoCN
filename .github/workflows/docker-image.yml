@@ -39,7 +39,7 @@ jobs:
     # Step 5: 准备 Docker 镜像标签
     - name: Prepare Docker tags
       run: |
-        echo "TAGS=fc6a1b03/geo-cn:latest,fc6a1b03/geo-cn:$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
+        echo "TAGS=fc6a1b03/geo-cn:latest,fc6a1b03/geo-cn:$(date +'%Y%m%d')" >> $GITHUB_ENV
     
     # Step 6: 为多种架构构建和推送Docker镜像
     - name: Build and push Docker image
