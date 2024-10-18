@@ -1,19 +1,37 @@
-FROM python:3.9 as py-builder
+# 使用官方 Python 镜像作为构建阶段
+FROM python:3.9 as builder
+
+# 设置工作目录
 WORKDIR /code
 
+# 复制 requirements 文件并安装依赖
 COPY ./requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-===========================================
+===================================================
 
-FROM python:3-slim
+# 生成更小的生产镜像
+FROM python:3.9-slim
+
+# 设置时区为 Asia/Shanghai
 ENV TZ=Asia/Shanghai
+
+# 设置工作目录
 WORKDIR /code
 
-COPY --from=py-builder /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages
-COPY --from=py-builder /usr/local/bin /usr/local/bin
-COPY ./main.py .
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
-    apt-get update && apt-get install -y curl procps && rm -rf /var/lib/apt/lists/*
+# 复制依赖和二进制文件到生产镜像中
+COPY --from=builder /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 
-CMD sh update_and_restart.sh
+# 复制应用程序代码
+COPY ./main.py .
+
+# 设置时区并安装必要的软件包
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
+    echo $TZ > /etc/timezone && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends curl procps && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# 使用 ENTRYPOINT 运行应用
+ENTRYPOINT ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80", "--no-server-header", "--proxy-headers"]
