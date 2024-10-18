@@ -56,4 +56,5 @@ else
   exit 1
 fi
 
-echo "所有下载已完成。"
+echo "所有Geo下载已完成。"
+ls -lh
