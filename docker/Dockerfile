@@ -5,7 +5,7 @@ WORKDIR /code
 COPY ./requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-===================================================
+# ===================================================
 
 # 生成更小的生产镜像
 FROM python:3.9-slim
