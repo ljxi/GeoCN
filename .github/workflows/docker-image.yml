@@ -2,8 +2,10 @@ name: GeoCN Docker Image CI
 
 # 触发配置
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 2 15 * *'
+
 jobs:
   build:
     runs-on: ubuntu-latest
