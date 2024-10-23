@@ -194,7 +194,11 @@ app = FastAPI()
 @app.get("/")
 def api(request: Request, ip: str = None):
     if not ip:
-        ip = request.headers.get("x-forwarded-for") or request.headers.get("x-real-ip") or request.client.host
+        xff = request.headers.get("x-forwarded-for")
+        if xff:
+            ip = xff.split(",")[0]
+        else:
+            ip = request.headers.get("x-real-ip") or request.client.host
     return get_ip_info(ip.strip())
 
 @app.get("/{ip}")
