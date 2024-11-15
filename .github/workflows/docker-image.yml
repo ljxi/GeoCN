@@ -11,41 +11,43 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }} 
 
-    # Step 1: 设置Docker Buildx
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    # Step 2: 为多平台构建安装QEMU
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-
-    # Step 3: 登录Docker Hub
-    - name: Login to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Set registry environment variable
+        run: echo "REGISTRY=ghcr.io" >> $GITHUB_ENV
+      
+      # - name: Login to Docker Hub
+      #   uses: docker/login-action@v3
+      #   with:
+      #     username: ${{ secrets.DOCKER_USERNAME }}
+      #     password: ${{ secrets.DOCKER_PASSWORD }}
+      
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
     
-    # Step 4: 同步 geoip2
-    - name: Sync Geoip2
-      working-directory: docker
-      run: |
-        chmod +x geoip2_sync.sh && ./geoip2_sync.sh
-      env:
-        LICENSE_KEY: ${{ secrets.MAXMIND_LICENSE_KEY }}
-
-    # Step 5: 准备 Docker 镜像标签
-    - name: Prepare Docker tags
-      run: |
-        echo "TAGS=fc6a1b03/geo-cn:latest,fc6a1b03/geo-cn:$(date +'%Y%m%d')" >> $GITHUB_ENV
-    
-    # Step 6: 为多种架构构建和推送Docker镜像
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: docker
-        push: true
-        tags: ${{ env.TAGS }}
-        platforms: linux/amd64,linux/arm64
+      # Step 4: 同步 geoip2
+      - name: Sync Geoip2
+        working-directory: docker
+        run: |
+          chmod +x geoip2_sync.sh && ./geoip2_sync.sh
+        env:
+          LICENSE_KEY: ${{ secrets.MAXMIND_LICENSE_KEY }}
+      
+      # Step 6: 为多种架构构建和推送Docker镜像
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository }}:latest
+          platforms: linux/amd64,linux/arm64
