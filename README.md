@@ -1,6 +1,8 @@
 # GeoCN
 
-每月更新中国大陆高精度IPV4+IPV6离线库，部分IP精确到区
+随缘更新中国大陆高精度IPV4+IPV6离线库，部分IP精确到区
+
+本项目数据来源于二分算法扫描公开免费高质量的API接口，并对数据进行清洗整理得到最终数据，更新周期取决于作者收集到的上游API的精度与更新周期，如果你有合适的API，欢迎提供
 
 下载地址：[GeoCN.mmdb](https://github.com/ljxi/GeoCN/releases/download/Latest/GeoCN.mmdb)
 
