@@ -1,10 +1,13 @@
 import ipaddress
 import maxminddb
 from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
+# Gunicorn 会在每个 worker 进程中加载这些文件
 city_reader = maxminddb.open_database('GeoLite2-City.mmdb')
 asn_reader = maxminddb.open_database('GeoLite2-ASN.mmdb')
 cn_reader = maxminddb.open_database('GeoCN.mmdb')
+
 lang = ["zh-CN","en"]
 asn_map = {
     9812:"东方有线",
@@ -61,6 +64,24 @@ asn_map = {
     15169:"谷歌云",396982:"谷歌云",36492:"谷歌云",
 }
 
+# 标准化IPv4地址
+
+def normalize_ip(ip_str: str) -> str:
+    
+   #Gunicorn/Uvicorn 服务器绑定到双栈地址 [::] 时，它会以 ::ffff:45.xx.xx.xx 是一种 IPv6 映射的 IPv4 地址，normalize_ip用来修正。
+
+    try:
+        ip_obj = ipaddress.ip_address(ip_str)
+        if isinstance(ip_obj, ipaddress.IPv6Address):
+            if ip_obj.ipv4_mapped:
+                ipv4_int = int(ip_obj) & 0xFFFFFFFF
+                return str(ipaddress.IPv4Address(ipv4_int))
+                
+        return str(ip_obj)  
+    except ValueError:
+        return ip_str  
+
+
 def get_as_info(number):
     r = asn_map.get(number)
     if r:
@@ -92,11 +113,14 @@ def de_duplicate(regions):
     return ret
 
 def get_addr(ip, mask):
+    # get_addr 现在会收到一个规范化的 IP (IPv4 or IPv6)
     network = ipaddress.ip_network(f"{ip}/{mask}", strict=False)
     first_ip = network.network_address
     return f"{first_ip}/{mask}"
 
+
 def get_maxmind(ip: str):
+    # ip 已经是规范化的
     ret = {"ip":ip}
     asn_info = asn_reader.get(ip)
     if asn_info:
@@ -134,6 +158,7 @@ def get_maxmind(ip: str):
     return ret
 
 def get_cn(ip:str, info={}):
+    # ip 已经是规范化的
     ret, prefix = cn_reader.get_with_prefix_len(ip)
     if not ret:
         return
@@ -155,57 +180,74 @@ def get_ip_info(ip):
         get_cn(ip,info)
     return info
 
-def query():
-    while True:
-        try:
-            ip = input('IP：   \t').strip()
-            info = get_ip_info(ip)
-                
-            print(f"网段：\t{info['addr']}")
-                
-            if "as" in info:
-                print(f"ISP：\t",end=' ')
-                if "info" in info["as"]:
-                    print(info["as"]["info"],end=' ')
-                else:
-                    print(info["as"]["name"],end=' ')
-                if "type" in info:
-                    print(f"({info['type']})",end=' ')
-                print(f"ASN{info['as']['number']}",end=' ')
-                print(info['as']["name"])
-                
-            if "registered_country" in info and ("country" not in info or info["country"]["code"] != info["registered_country"]["code"]):
-                print(f"注册地：\t{info['registered_country']['name']}")
-                
-            if "country" in info:
-                print(f"使用地：\t{info['country']['name']}")
-                
-            if "regions" in info:
-                print(f"位置：    \t{' '.join(info['regions'])}")
-                
-        except Exception as e:
-            print(e)
-            raise e
-        finally:
-            print("\n")
-            
 app = FastAPI()
 
 @app.get("/")
 def api(request: Request, ip: str = None):
-    if not ip:
-        xff = request.headers.get("x-forwarded-for")
-        if xff:
-            ip = xff.split(",")[0]
+    ip_to_check = None
+    try:
+        if not ip:
+            xff = request.headers.get("x-forwarded-for")
+            if xff:
+                ip_to_check = xff.split(",")[0]
+            else:
+                ip_to_check = request.headers.get("x-real-ip")
+            
+            if not ip_to_check:
+                ip_to_check = request.client.host
         else:
-            ip = request.headers.get("x-real-ip") or request.client.host
-    return get_ip_info(ip.strip())
+            ip_to_check = ip
+        
+        # 检查是否能获取到 IP
+        if not ip_to_check:
+             return JSONResponse(
+                status_code=400,
+                content={"error": "Could not determine client IP address"}
+            )
+
+        ip_stripped = ip_to_check.strip()
+        if not ip_stripped:
+             return JSONResponse(
+                status_code=400,
+                content={"error": "Empty IP address provided"}
+            )
+
+        ip_normalized = normalize_ip(ip_stripped)
+        return get_ip_info(ip_normalized)
+    
+    except Exception as e:
+        print(f"Error processing IP '{ip_to_check}': {e}") 
+        return JSONResponse(
+            status_code=500,
+            content={"error": "An internal error occurred", "detail": str(e)}
+        )
+
 
 @app.get("/{ip}")
-def path_api(ip):
-    return get_ip_info(ip)
+def path_api(ip: str):
+    try:
+        if not ip:
+             return JSONResponse(
+                status_code=400,
+                content={"error": "No IP address provided"}
+            )
+        
+        ip_stripped = ip.strip()
+        if not ip_stripped:
+             return JSONResponse(
+                status_code=400,
+                content={"error": "Empty IP address provided"}
+            )
 
-if __name__ == '__main__':
-    query()
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8080, server_header=False, proxy_headers=True)
+        ip_normalized = normalize_ip(ip_stripped)
+        return get_ip_info(ip_normalized)
+
+    except Exception as e:
+        print(f"Error processing IP '{ip}': {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": "An internal error occurred", "detail": str(e)}
+        )
+
+
+

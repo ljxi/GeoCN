@@ -1,3 +1,4 @@
 maxminddb
 fastapi
 uvicorn
+gunicorn
