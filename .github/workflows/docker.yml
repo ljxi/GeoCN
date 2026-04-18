@@ -1,0 +1,56 @@
+name: Build and Push Docker Image
+
+on:
+  schedule:
+    # UTC+8 每周一凌晨4点 = UTC 周日 20:00
+    - cron: '0 20 * * 0'
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: ${{ vars.DOCKERHUB_IMAGE || github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download GeoCN.mmdb from releases
+        run: |
+          mkdir -p db
+          gh release download --repo "${{ github.repository }}" --pattern "GeoCN.mmdb" --dir db --clobber || {
+            echo "::warning::GeoCN.mmdb not found in releases, skipping"
+          }
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download GeoLite2 databases
+        run: |
+          mkdir -p db
+          curl -fSL -o db/GeoLite2-City.mmdb \
+            "https://github.com/P3TERX/GeoLite.mmdb/raw/download/GeoLite2-City.mmdb"
+          curl -fSL -o db/GeoLite2-ASN.mmdb \
+            "https://github.com/P3TERX/GeoLite.mmdb/raw/download/GeoLite2-ASN.mmdb"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
