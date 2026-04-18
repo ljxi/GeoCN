@@ -10,7 +10,7 @@ FROM alpine:3.21
 
 WORKDIR /app
 COPY --from=builder /server .
-COPY division_code/ division_code/
+COPY data/ data/
 COPY db/ db/
 
 EXPOSE 80
