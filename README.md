@@ -4,7 +4,7 @@
 
 本项目数据来源于二分算法扫描公开免费高质量的API接口，并对数据进行清洗整理得到最终数据，更新周期取决于作者收集到的上游API的精度与更新周期，如果你有合适的API，欢迎提供
 
-下载地址：[GeoCN.mmdb](https://github.com/ljxi/GeoCN/releases/download/latest/GeoCN.mmdb)
+下载地址：[GeoCN.mmdb](https://github.com/ljxi/GeoCN/releases/latest/download/GeoCN.mmdb)
 
 本项目仅包含[MaxMind](https://github.com/P3TERX/GeoLite.mmdb)显示为中国大陆的IP段
 
